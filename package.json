@@ -1,0 +1,13 @@
+{
+  "name": "personal-finance",
+  "version": "1.0.0",
+  "description": "Simple personal finance tracker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.19.0"
+  }
+}

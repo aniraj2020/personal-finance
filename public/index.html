@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Finance</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 24px;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Summary Bar ── */
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .summary-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .summary-card .amount {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .summary-card.income  .amount { color: #16a34a; }
+    .summary-card.expense .amount { color: #dc2626; }
+    .summary-card.balance .amount { color: #1a1a1a; }
+    .summary-card.balance .amount.negative { color: #dc2626; }
+
+    /* ── Form ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .card h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #555;
+    }
+
+    input, select {
+      padding: 8px 10px;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus {
+      border-color: #6366f1;
+    }
+
+    .btn-add {
+      grid-column: 1 / -1;
+      padding: 10px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-add:hover { background: #4f46e5; }
+
+    /* ── Transaction List ── */
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .list-header h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .tx-count {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .tx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tx-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #fafafa;
+      border: 1px solid #ebebeb;
+      border-radius: 8px;
+    }
+
+    .tx-date {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .tx-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tx-category {
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    .tx-note {
+      font-size: 0.78rem;
+      color: #999;
+    }
+
+    .tx-amount {
+      font-size: 0.95rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tx-amount.income  { color: #16a34a; }
+    .tx-amount.expense { color: #dc2626; }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 1rem;
+      padding: 4px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .btn-delete:hover { color: #dc2626; }
+
+    .empty {
+      text-align: center;
+      color: #aaa;
+      font-size: 0.9rem;
+      padding: 32px 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Personal Finance</h1>
+</header>
+
+<div class="container">
+
+  <!-- Summary Bar -->
+  <div class="summary">
+    <div class="summary-card income">
+      <div class="label">Income</div>
+      <div class="amount" id="total-income">$0.00</div>
+    </div>
+    <div class="summary-card expense">
+      <div class="label">Expenses</div>
+      <div class="amount" id="total-expenses">$0.00</div>
+    </div>
+    <div class="summary-card balance">
+      <div class="label">Balance</div>
+      <div class="amount" id="total-balance">$0.00</div>
+    </div>
+  </div>
+
+  <!-- Add Transaction Form -->
+  <div class="card">
+    <h2>Add Transaction</h2>
+    <form id="tx-form" class="form-grid" novalidate>
+      <div class="form-group">
+        <label for="type">Type</label>
+        <select id="type" required>
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="amount">Amount ($)</label>
+        <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" required />
+      </div>
+
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" required></select>
+      </div>
+
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" required />
+      </div>
+
+      <div class="form-group full">
+        <label for="note">Note <span style="color:#aaa;font-weight:400">(optional)</span></label>
+        <input type="text" id="note" placeholder="Short description..." maxlength="100" />
+      </div>
+
+      <button type="submit" class="btn-add">Add Transaction</button>
+    </form>
+  </div>
+
+  <!-- Transaction List -->
+  <div class="card">
+    <div class="list-header">
+      <h2>Transactions</h2>
+      <span class="tx-count" id="tx-count"></span>
+    </div>
+    <div class="tx-list" id="tx-list"></div>
+  </div>
+
+</div>
+
+<script>
+  // ── Categories ────────────────────────────────────────────
+  const CATEGORIES = {
+    income:  ['Salary', 'Freelance', 'Investment', 'Gift', 'Other Income'],
+    expense: ['Food & Dining', 'Transport', 'Housing & Utilities', 'Entertainment', 'Health', 'Shopping', 'Other Expense'],
+  };
+
+  // ── State ─────────────────────────────────────────────────
+  let transactions = [];
+
+  // ── Format ────────────────────────────────────────────────
+  function fmt(n) {
+    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function fmtDate(iso) {
+    const [y, m, d] = iso.split('-');
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  // ── Render Summary ────────────────────────────────────────
+  function renderSummary() {
+    const income   = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const expenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const balance  = income - expenses;
+
+    document.getElementById('total-income').textContent   = fmt(income);
+    document.getElementById('total-expenses').textContent = fmt(expenses);
+
+    const balanceEl = document.getElementById('total-balance');
+    balanceEl.textContent = (balance < 0 ? '-' : '') + fmt(Math.abs(balance));
+    balanceEl.classList.toggle('negative', balance < 0);
+  }
+
+  // ── Render List ───────────────────────────────────────────
+  function renderList() {
+    const list = document.getElementById('tx-list');
+    const count = document.getElementById('tx-count');
+
+    count.textContent = transactions.length
+      ? `${transactions.length} transaction${transactions.length > 1 ? 's' : ''}`
+      : '';
+
+    if (transactions.length === 0) {
+      list.innerHTML = '<div class="empty">No transactions yet. Add one above.</div>';
+      return;
+    }
+
+    list.innerHTML = transactions.map(t => `
+      <div class="tx-item">
+        <span class="tx-date">${fmtDate(t.date)}</span>
+        <div class="tx-meta">
+          <span class="tx-category">${t.category}</span>
+          ${t.note ? `<span class="tx-note">${t.note}</span>` : ''}
+        </div>
+        <span class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</span>
+        <button class="btn-delete" onclick="deleteTransaction('${t.id}')" title="Delete">&#x2715;</button>
+      </div>
+    `).join('');
+  }
+
+  function render() {
+    renderSummary();
+    renderList();
+  }
+
+  // ── API ───────────────────────────────────────────────────
+  async function loadTransactions() {
+    const res = await fetch('/api/transactions');
+    transactions = await res.json();
+    render();
+  }
+
+  async function deleteTransaction(id) {
+    if (!confirm('Delete this transaction?')) return;
+    await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    transactions = transactions.filter(t => t.id !== id);
+    render();
+  }
+
+  // ── Category Dropdown ─────────────────────────────────────
+  function updateCategories() {
+    const type = document.getElementById('type').value;
+    const select = document.getElementById('category');
+    select.innerHTML = CATEGORIES[type].map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  document.getElementById('type').addEventListener('change', updateCategories);
+
+  // ── Form Submit ───────────────────────────────────────────
+  document.getElementById('tx-form').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const amount = parseFloat(document.getElementById('amount').value);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+
+    const transaction = {
+      id:       Date.now().toString(),
+      type:     document.getElementById('type').value,
+      amount:   amount,
+      category: document.getElementById('category').value,
+      date:     document.getElementById('date').value,
+      note:     document.getElementById('note').value.trim(),
+    };
+
+    await fetch('/api/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(transaction),
+    });
+
+    transactions.unshift(transaction);
+    render();
+
+    document.getElementById('amount').value = '';
+    document.getElementById('note').value = '';
+    document.getElementById('amount').focus();
+  });
+
+  // ── Init ──────────────────────────────────────────────────
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+  updateCategories();
+  loadTransactions();
+</script>
+
+</body>
+</html>
