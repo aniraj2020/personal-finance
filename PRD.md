@@ -76,9 +76,9 @@ Single user, personal use. No multi-user support.
 |                   | Other Expense           |
 
 ### 5.5 Data Persistence
-- All data stored in browser `localStorage`
-- Data persists across page refreshes
-- No server, no database
+- All data stored in a local SQLite database (`finance.db`) on disk
+- Node.js + Express backend serves the REST API
+- Data persists across page refreshes and browser clears
 
 ---
 
@@ -109,16 +109,17 @@ Single user, personal use. No multi-user support.
 |-------------|-------------------------------|
 | Language    | HTML, CSS, vanilla JavaScript |
 | Styling     | Plain CSS (no frameworks)     |
-| Storage     | Browser `localStorage`        |
-| Build tools | None — single HTML file       |
+| Backend     | Node.js + Express             |
+| Database    | SQLite (via better-sqlite3)   |
 
 ---
 
 ## 8. Constraints
 
-- Must work as a single `index.html` file (no build step required)
-- No external dependencies (no npm, no CDN libraries)
+- No build step required — run with `npm start`
+- No external CDN libraries
 - Must work in any modern browser (Chrome, Firefox, Safari)
+- Requires Node.js installed locally
 
 ---
 
